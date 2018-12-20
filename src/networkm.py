@@ -8,6 +8,8 @@ E = 2.718281828459045
 
 def sigmoid(x):
     "the sigmoid function"
+    if x < (-700):
+        return 0
     return 1.0/(1.0+(E**(-x)))
 
 
@@ -30,7 +32,8 @@ def single_image():
     labels = []
     for line in range(1):
         labels += label[line]
-    return labels
+    difference = len(labels) - 784
+    return labels[:len(labels) - difference]
 
 def save_image(pixels:list):
     image = Image.open("../data/mnist_complete_zero.png")
@@ -39,6 +42,10 @@ def save_image(pixels:list):
     image.save("test.png")
 
 
+
+a = single_image()
+print(a)
+save_image(a)
 ##to do
 '''
 - create memoize decorator

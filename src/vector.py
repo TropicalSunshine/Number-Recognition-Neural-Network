@@ -2,10 +2,10 @@
 #for vectors (matricies with n x 1 column)
 
 class vector(list):
-    def __init__(self, vector=[]):
+    def __init__(self, vector):
         if type(vector) != list:
             raise AttributeError("Must be type list")
-        self.vector = vector 
+        self.vector = vector
 
     def __repr__(self):
         return "vector({})".format(self.vector)
@@ -53,7 +53,7 @@ class vector(list):
     def __getitem__(self, index):
         if type(index) != int:
             raise TypeError("index must be of type int")
-        if index < len(self.vector) or index > len(self.vector) - 1:
+        if index > len(self.vector):
             raise IndexError
         else:
             return self.vector[index]
