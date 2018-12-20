@@ -3,10 +3,12 @@ from layer import layer
 
 import networkm
 
+#global 
+TESTING_SET = networkm.data_set()
 
 def main():
     # for testing program
-    Input = vector(networkm.single_image()) # layer with the 768 pixel values
+    Input = vector(networ # layer with the 768 pixel values
     hidden_1 = layer(16, "h") #where the 'magic' happens
     hidden_1.init_weights(len(Input))
 
@@ -41,6 +43,13 @@ def forward_prop(A: vector,L: layer):
     L.calculate()
 
     return L.activations
+
+
+def convert_grey(pixels: [] or ()):
+    return map(lambda x: x/255, [p for p in pixels])
+
+
+
 
 
 
