@@ -1,28 +1,21 @@
-import array as Array
-import node as Node
-import layer as Layer
+from array import array
+from layer import layer
 
-#global
-E = 2.718281828459045
-
-
-def sigmoid(x):
-    "the sigmoid function"
-    return 1.0/(1.0+(E**(-x)))
-
-
-def sigmoid_prime(x):
-    "derivative of the sigmoid function"
-    "growth of the function"
-    return sigmoid(x)*(1 - sigmoid(x))
-
-
-
-
+import networkm
 
 
 def main():
-    pass
+    Input = networkm.single_image() # layer with the 768 pixel values
+    hidden_1 = layer(16, "h") #the layers
+    hideen_2 = layer(16, "h") # where the 'magic' happens
+    output = [0,1,2,3,4,5,6,7,8,9]
+    print(len(Input))
+
+
+
+
+
+
 
 
 
