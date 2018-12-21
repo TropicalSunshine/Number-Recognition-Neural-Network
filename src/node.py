@@ -2,7 +2,7 @@
 import random
 
 from vector    import vector
-from networkm import sigmoid
+from networkf  import sigmoid
 
 class node:
     def __init__(self,i, weights, bias = 1):
@@ -26,16 +26,16 @@ class node:
             self.w.add(random.uniform(-1,1))
 
     def set_bias(self, b):
-        self.bias = b
+        self.b = b
     
     def get_bias(self):
-        return self.bias
+        return self.b
 
-    def set_weights(self, index, value):
-        "weight must be an array "
-        if index < len(self.w) or index > len(self.w) - 1:
-            raise IndexError
-        self.w[index] = value
+    def set_weights(self, W: vector):
+        "weight must be a vector object"
+        if type(W) != vector:
+            raise TypeError("must be type vector")
+        self.w = W
     
     def get_weights(self):
         return self.w

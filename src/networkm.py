@@ -1,11 +1,12 @@
 
 import gzip
 import struct
-from PIL import Image
+from pathlib    import Path    
+from PIL        import Image
+from layer      import layer
+from vector     import vector
 
-#global
-E = 2.718281828459045
-
+#globals
 DATA_TYPES = {
     8: ('ubyte', 'B', 1),
     9: ('byte   ', 'b', 1),
@@ -14,18 +15,6 @@ DATA_TYPES = {
     13: ('>f4', 'f', 4),
     15: ('>f8', 'd', 8)
     }
-
-def sigmoid(x):
-    "the sigmoid function"
-    if x < (-700):
-        return 0
-    return 1.0/(1.0+(E**(-x)))
-
-
-def sigmoid_prime(x):
-    "derivative of the sigmoid function"
-    "growth of the function"
-    return sigmoid(x)*(1 - sigmoid(x))
 
 def label_data():
 
@@ -45,11 +34,8 @@ def label_data():
     labels = []
     for i in range(num_labels):
         labels.append(struct.unpack(">B",f.read(1))[0])
+    f.close()
     return labels
-    
-
-
-    
     
 
 def image_data():
@@ -78,6 +64,7 @@ def image_data():
     for i in range(num_images):
         images.append(struct.unpack('>' + 'B'*(rows*columns)\
                                     ,f.read(rows*columns)))
+    f.close()
     return images
 
 
@@ -97,9 +84,44 @@ def save_image(pixels:list):
     image.save("test.png")
 
 
-a = data_set()
-b = convert_data(a)
-print(b[0])
+def save_data(L: list, name: str):
+    save_f = open("../data/{}".format(name) + ".txt", 'w')
+    for l_index in range(len(L)):
+        save_f.write("L{},{}\n".format(L[l_index].t, len(L[l_index])))
+
+        for node_index in range(len(L[l_index])):
+            save_f.write("{},{}:{}{}\n".format(l_index, node_index, \
+                                        L[l_index][node_index].get_weights().get_vector(), \
+                                        L[l_index][node_index].get_bias()))
+        save_f.write("\n")
+
+
+def load_data(name: str) -> []:
+    L = []
+    save_f = Path("../data/"+name+".txt")
+
+    if save_f.exists():
+        f = open(save_f, "r")
+        for line in f:
+            if line[0] == "L":
+                line = line.rstrip()
+                line = line.split(",")
+                L.append(layer(int(line[1]), line[0][1]))
+            elif line[0] != "\n":
+                if L != []:
+                    index = line.rstrip().split(":")[0]
+                    data = line.rstrip().split(":")[1]
+
+                    index = index.split(",")
+                    L[int(index[0])][int(index[1])].\
+                                    set_weights(vector(eval(data[:-1])))
+                    L[int(index[0])][int(index[1])].set_bias(int(data[-1])) 
+            else:
+                pass               
+    else:
+        raise AttributeError("save file does not exist")
+    return L
+
 
 
 ##to do

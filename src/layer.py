@@ -1,11 +1,11 @@
 # layer class for 
 import random
 from vector import vector
-from node import node
+from node   import node
 
 
 class layer:
-    def __init__(self, nodes=0, activate =[], t='h', name = "default"):
+    def __init__(self, nodes=0, t='h'):
         '''creates a layer class object based on the number of nodes
             then initializs the number of nodes specified
             

@@ -4,7 +4,7 @@
 class vector(list):
     def __init__(self, vector):
         if type(vector) == tuple:
-            vector = list(tuple)
+            vector = list(vector)
         if type(vector) != list:
             raise AttributeError("Must be type list")
         self.vector = vector
