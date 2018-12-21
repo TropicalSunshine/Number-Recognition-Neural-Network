@@ -94,6 +94,7 @@ def save_data(L: list, name: str):
                                         L[l_index][node_index].get_weights().get_vector(), \
                                         L[l_index][node_index].get_bias()))
         save_f.write("\n")
+    save_f.close()
 
 
 def load_data(name: str) -> []:
@@ -117,7 +118,8 @@ def load_data(name: str) -> []:
                                     set_weights(vector(eval(data[:-1])))
                     L[int(index[0])][int(index[1])].set_bias(int(data[-1])) 
             else:
-                pass               
+                pass    
+        f.close()           
     else:
         raise AttributeError("save file does not exist")
     return L

@@ -40,6 +40,9 @@ class node:
     def get_weights(self):
         return self.w
 
+    def get_sum(self):
+        return ((self.a * self.w) + self.b)
+
     def activate(self):
         if len(self.a) != len(self.w):
             raise AttributeError("could not activate difference in w and a")

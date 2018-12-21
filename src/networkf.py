@@ -12,3 +12,10 @@ def sigmoid_prime(x):
     "derivative of the sigmoid function"
     "growth of the function"
     return sigmoid(x)*(1 - sigmoid(x))
+
+
+def cost(actual, expected):
+    return (actual - expected)**2
+
+def cost_prime(actual, expected):
+    return 2*(actual - expected)

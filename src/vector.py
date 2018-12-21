@@ -3,6 +3,7 @@
 
 class vector(list):
     def __init__(self, vector):
+        list.__init__(self,vector)
         if type(vector) == tuple:
             vector = list(vector)
         if type(vector) != list:
