@@ -60,11 +60,11 @@ def forward_propagation(L: list, run_count: int, r=False):
 
         guess = network_guess(outputs, [0,1,2,3,4,5,6,7,8,9])
         print()
-        print("Guess: {}   Actual: {}".format(guess, get_data(run_count)[1]))
+        print("Guess: {}   Actual: {}\n".format(guess, get_data(run_count)[1]))
 
         if r == True:
             return L, outputs
-        
+        print(outputs)
         start = input("Continue? ")
 
         if start == "n":
@@ -74,14 +74,15 @@ def forward_propagation(L: list, run_count: int, r=False):
 
 
 def back_propagation(L: "list of layers"):
-    run = 0
+    run = 100
     gradient = defaultdict(lambda: defaultdict(dict))
     dcost = 10
-    while run != len(TESTING_SET) or dcost > 1:
+    while run != 200 or dcost > 1:
         L, outputs = forward_propagation(L, run, True)
         dcost = change_in_cost(run, outputs)
 
         print("run: {}".format(run))
+
         for layer_i in range(len(L) - 1, -1, -1):
             nodec = 0 
             for node in L[layer_i]:
@@ -89,7 +90,7 @@ def back_propagation(L: "list of layers"):
                     dweight = delta_weight(node.get_sum(), L[layer_i - 1].activations.get_vector(), dcost)
                     dbias   = delta_bias(node.get_sum(), dcost)
 
-                elif layer_i == '0': #first layer back propogation
+                elif layer_i == 0: #first layer back propogation
                     dcost = delta_cost(L[layer_i + 1], gradient["L"+ str(layer_i + 1)][0]["dcost"])
                     dweight = delta_weight(node.get_sum(), get_data(run)[0], dcost)
                     dbias   = delta_bias(node.get_sum(), dcost)
@@ -105,6 +106,8 @@ def back_propagation(L: "list of layers"):
                 gradient["L"+str(layer_i)][nodec]["dweights"] = dweight
                 gradient["L"+str(layer_i)][nodec]["dbias"] = dbias
 
+                print("L: {}  N: {} ERROR:{}\n".format(layer_i, nodec, dcost))
+
                 #changes in node
                 node.set_bias(node.get_bias() - dbias)
                 change_node_w(dweight, node)
@@ -117,7 +120,6 @@ def back_propagation(L: "list of layers"):
 def change_node_w(delta: list, node: "node object"):
     r_weights = []
     weights = node.get_weights()
-
     if len(weights) != len(delta):
         raise ValueError("Different lengths")
 
