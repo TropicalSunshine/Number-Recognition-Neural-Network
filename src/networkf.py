@@ -1,6 +1,23 @@
 #global
 E = 2.718281828459045
 
+class Memoize:
+    def __init__(self,f):
+        self.f = f
+        self.cache = {}
+
+    def __call__(self,*args):
+        if args in self.cache:
+            return self.cache[args]
+        else:
+            answer = self.f(*args)        # Recursive calls will set cache too
+            
+            self.cache[args] = answer
+            return answer
+
+    def reset_cache(self):
+        self.cache = {}
+
 @Memoize
 def sigmoid(x):
     "the sigmoid function"
@@ -20,21 +37,5 @@ def cost(actual, expected):
 
 @Memoize
 def cost_prime(actual, expected):
-    return 2*(actual - expected)
+    return (actual - expected)
 
-class Memoize:
-    def __init__(self,f):
-        self.f = f
-        self.cache = {}
-
-    def __call__(self,*args):
-        if args in self.cache:
-            return self.cache[args]
-        else:
-            answer = self.f(*args)        # Recursive calls will set cache too
-            
-            self.cache[args] = answer
-            return answer
-
-    def reset_cache(self):
-        self.cache = {}

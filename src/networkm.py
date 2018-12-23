@@ -19,7 +19,7 @@ DATA_TYPES = {
 def label_data():
 
     print("Training set labels")
-    f = open("../data/t10k-labels.idx1-ubyte",'rb')
+    f = open("../data/train-labels.idx1-ubyte",'rb')
     f.seek(0)
     magic_num = struct.unpack('>4B',f.read(4))
     print("data type: {}".format(DATA_TYPES[magic_num[2]][0]))
@@ -44,7 +44,7 @@ def image_data():
     '''
 
     print("Training set images")
-    f = open("../data/t10k-images.idx3-ubyte",'rb')
+    f = open("../data/train-images.idx3-ubyte",'rb')
     f.seek(0)
     magic_num = struct.unpack('>4B',f.read(4))
     print("data type: {}".format(DATA_TYPES[magic_num[2]][0]))

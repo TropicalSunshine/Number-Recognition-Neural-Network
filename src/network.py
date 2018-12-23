@@ -34,6 +34,9 @@ def main():
 
     layers = [hidden_1, hidden_2, output]
 
+    if Path("../data/weights.txt").exists():
+        layers = networkm.load_data("weights")
+
     mode = input('b/f')
     if mode == "b":
         back_propagation(layers)
@@ -43,13 +46,11 @@ def main():
 
 
 def forward_propagation(L: list, run_count: int, r=False):
-    if Path("../data/weights.txt").exists():
-        L = networkm.load_data("weights")
-
     start = 'y'
+
     if start == 'y':
         run = True
-
+    correct = 0
     while run or run_count != len(TESTING_SET):
         Input = get_data(run_count)[0] # layer with the 768 pixel values
 
@@ -59,8 +60,13 @@ def forward_propagation(L: list, run_count: int, r=False):
 
 
         guess = network_guess(outputs, [0,1,2,3,4,5,6,7,8,9])
-        print()
-        print("Guess: {}   Actual: {}\n".format(guess, get_data(run_count)[1]))
+        actual = get_data(run_count)[1]
+
+        if guess == actual:
+            correct += 1
+        
+        print("Guess: {}   Actual: {}\n".format(guess, actual))
+
 
         if r == True:
             return L, outputs
@@ -74,29 +80,44 @@ def forward_propagation(L: list, run_count: int, r=False):
 
 
 def back_propagation(L: "list of layers"):
-    run = 100
+    run = 0
     gradient = defaultdict(lambda: defaultdict(dict))
-    dcost = 10
-    while run != 200 or dcost > 1:
-        L, outputs = forward_propagation(L, run, True)
-        dcost = change_in_cost(run, outputs)
 
+    learning_rate = int(input("learning rate: "))
+
+    correct = 0
+    while run != 5000 :
+        L, outputs = forward_propagation(L, run, True)
+
+        actual = get_data(run)[1]
+        guess = network_guess(outputs, [0,1,2,3,4,5,6,7,8,9])
+
+        if actual == guess:
+            correct += 1
+
+        print("Correct: {}".format(correct))
+
+        dcost_gradient = change_in_cost(run, outputs)
         print("run: {}".format(run))
+
 
         for layer_i in range(len(L) - 1, -1, -1):
             nodec = 0 
             for node in L[layer_i]:
                 if L[layer_i].t == 'o': #last layer back propogation
+                    dcost = dcost_gradient[nodec]
                     dweight = delta_weight(node.get_sum(), L[layer_i - 1].activations.get_vector(), dcost)
                     dbias   = delta_bias(node.get_sum(), dcost)
 
                 elif layer_i == 0: #first layer back propogation
-                    dcost = delta_cost(L[layer_i + 1], gradient["L"+ str(layer_i + 1)][0]["dcost"])
+                    dcost = delta_cost(L[layer_i + 1], gradient["L"+ str(layer_i + 1)]["gradient"], node)
+                    dcost_gradient.append(dcost)
                     dweight = delta_weight(node.get_sum(), get_data(run)[0], dcost)
                     dbias   = delta_bias(node.get_sum(), dcost)
 
                 else:               #hidden layers
-                    dcost = delta_cost(L[layer_i + 1], gradient["L"+ str(layer_i + 1)][0]["dcost"])
+                    dcost = delta_cost(L[layer_i + 1], gradient["L"+ str(layer_i + 1)]["gradient"], node)
+                    dcost_gradient.append(dcost)
                     dweight = delta_weight(node.get_sum(), L[layer_i - 1].activations.get_vector(), dcost)
                     dbias   = delta_bias(node.get_sum(), dcost)
 
@@ -106,34 +127,41 @@ def back_propagation(L: "list of layers"):
                 gradient["L"+str(layer_i)][nodec]["dweights"] = dweight
                 gradient["L"+str(layer_i)][nodec]["dbias"] = dbias
 
-                print("L: {}  N: {} ERROR:{}\n".format(layer_i, nodec, dcost))
 
                 #changes in node
                 node.set_bias(node.get_bias() - dbias)
-                change_node_w(dweight, node)
+                change_node_w(dweight,node,learning_rate)
                 nodec += 1
-        run += 1
 
+            gradient["L"+str(layer_i)]["gradient"] = vector(dcost_gradient)
+        print("ERROR:{}\n".format(gradient["L"+str(layer_i)]["gradient"].sum()))
+        run += 1
+        dcost_gradient = []
+    print("Correct Rate: {}".format(correct/run))
     networkm.save_data(L, "weights")
 
 
-def change_node_w(delta: list, node: "node object"):
+def change_node_w(delta: list, node: "node object", learning_rate=1):
     r_weights = []
     weights = node.get_weights()
     if len(weights) != len(delta):
         raise ValueError("Different lengths")
 
     for i in range(len(delta)):
-        r_weights.append(weights[i] - delta[i])
+        r_weights.append(weights[i] - (learning_rate*delta[i]))
 
     node.set_weights(vector(r_weights))
 
-def delta_cost(L: "layer object", d_N_cost: float):
-    delta = []
-    for node in L:
-        delta.append(sum(node.get_weights().get_vector()) * networkf.sigmoid_prime(node.get_sum())\
-                                                            * d_N_cost)
-    return sum(delta)
+def delta_cost(L: "layer object", d_N_gradient: vector, N:"node object"):
+    '''
+    sigmoid_prime(z) * summation of W mutiplied by cost
+    '''
+    sum_w_delta = []
+    for node in range(len(L)):
+        sum_w_delta.append(sum(L[node].get_weights() * d_N_gradient[node]))
+        
+    
+    return networkf.sigmoid_prime(N.get_sum()) * sum(sum_w_delta)
 
 def delta_weight(node_sum: float , L_p_activation:list, dcost:float):
     delta = []
@@ -158,7 +186,7 @@ def change_in_cost(run:int, O:list):
 
     for expect_i in range(len(expected)):
         delta.append(networkf.cost_prime(O[expect_i], expected[expect_i]))
-    return sum(delta)
+    return delta
 
     
 

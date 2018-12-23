@@ -74,6 +74,9 @@ class vector(list):
     def clear(self):
         self.vector = []
 
+    def sum(self):
+        return sum(self.vector)
+
 
     
 
