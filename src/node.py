@@ -8,11 +8,13 @@ class node:
     def __init__(self,i, weights, bias = 1):
         self.inputs = vector(i)
         self.w = vector(weights)
-        self.b = 1
+        self.b = 0
 
     def take_inputs(self,i):
         if len(i) != len(self.w):
             raise Exception("Number of inputs do not match number of weights")
+        if type(i) != vector:
+            raise TypeError("Cannot take type {}".format(type(i)))
         self.a = i
 
 

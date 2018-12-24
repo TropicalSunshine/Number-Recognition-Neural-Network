@@ -33,7 +33,7 @@ def sigmoid_prime(x):
 
 @Memoize
 def cost(actual, expected):
-    return (actual - expected)**2
+    return (0.5)*(actual - expected)**2
 
 @Memoize
 def cost_prime(actual, expected):

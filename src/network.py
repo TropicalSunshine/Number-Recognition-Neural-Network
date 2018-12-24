@@ -14,19 +14,25 @@ TESTING_SET = networkm.data_set()
 
 '''
 to do:
--back propagation
--fix up messing code 
+-fix up messy code 
 -clean up input sequence 
 '''
 
 def main():
     run_count = 0
 
+    # network layout for a MNIST training set images 
+    # Input layer - takes in the 784 grey scale pixels (range 0 - 1) each node contains the value of a single pixel
+    # Hidden layer 1 - contains 16 nodes 784 weights per node
+    # Hidden layer 2 - contains 16 nodes 16 weights per node
+    # Output layer   - contains 10 nodes and 16 weights per node
+    # largest interval of the output layer's activations corresponds to the network's guess of what that number is
+
     Input = get_data(run_count)[0]
-    hidden_1 = layer(16, "h") #where the 'magic' happens
+    hidden_1 = layer(16, "h") 
     hidden_1.init_weights(len(Input))
 
-    hidden_2 = layer(16, "h") # where the 'magic' happens
+    hidden_2 = layer(16, "h") 
     hidden_2.init_weights(len(hidden_1))
 
     output = layer(10, "o")
@@ -34,6 +40,7 @@ def main():
 
     layers = [hidden_1, hidden_2, output]
 
+    #checks for saved weights and bias file
     if Path("../data/weights.txt").exists():
         layers = networkm.load_data("weights")
 
@@ -46,6 +53,15 @@ def main():
 
 
 def forward_propagation(L: list, run_count: int, r=False):
+    '''
+    forward propagation 
+    first layer activations is taken as inputs for the next layer nodes
+    weight vector node length corresponds to the amount of nodes in the previous layer
+    after the dot product of the activation vector of the previous layer along with current node weight vector and inputted into the 
+    sigmoid function 
+    then the bias is added 
+    repeats until the last layer is reached
+    '''
     start = 'y'
 
     if start == 'y':
@@ -58,7 +74,7 @@ def forward_propagation(L: list, run_count: int, r=False):
         hidden_2_activation = layer_prop(hidden_1_activation, L[1])
         outputs = layer_prop(hidden_2_activation, L[2]).get_vector()
 
-
+        #calculates the guess of the network 
         guess = network_guess(outputs, [0,1,2,3,4,5,6,7,8,9])
         actual = get_data(run_count)[1]
 
@@ -80,13 +96,27 @@ def forward_propagation(L: list, run_count: int, r=False):
 
 
 def back_propagation(L: "list of layers"):
+    '''
+    Using gradient descent methods 
+    back propagation is asssited throught find the change in weights of a single node 
+    and the change in bias of that node 
+    calculated through the chain rule 
+    back propagation begins with the last layer
+    and works its way back until it reaches the first layer
+    '''
+
+    # interval for place in data to begin training
     run = 0
+
     gradient = defaultdict(lambda: defaultdict(dict))
 
+    #learning rate mutiplier 
     learning_rate = int(input("learning rate: "))
 
     correct = 0
-    while run != 5000 :
+
+
+    while run != 10000 : #sets the place in the data set to stop training
         L, outputs = forward_propagation(L, run, True)
 
         actual = get_data(run)[1]
@@ -134,7 +164,7 @@ def back_propagation(L: "list of layers"):
                 nodec += 1
 
             gradient["L"+str(layer_i)]["gradient"] = vector(dcost_gradient)
-        print("ERROR:{}\n".format(gradient["L"+str(layer_i)]["gradient"].sum()))
+        #print("ERROR:{}\n".format(gradient["L"+str(layer_i)]["gradient"].sum()))
         run += 1
         dcost_gradient = []
     print("Correct Rate: {}".format(correct/run))
@@ -142,6 +172,10 @@ def back_propagation(L: "list of layers"):
 
 
 def change_node_w(delta: list, node: "node object", learning_rate=1):
+    '''
+    changes the weights in the node 
+    corresponding to the delta index
+    '''
     r_weights = []
     weights = node.get_weights()
     if len(weights) != len(delta):
@@ -155,6 +189,7 @@ def change_node_w(delta: list, node: "node object", learning_rate=1):
 def delta_cost(L: "layer object", d_N_gradient: vector, N:"node object"):
     '''
     sigmoid_prime(z) * summation of W mutiplied by cost
+    calculates the DE/da of the hidden layers
     '''
     sum_w_delta = []
     for node in range(len(L)):
@@ -164,6 +199,9 @@ def delta_cost(L: "layer object", d_N_gradient: vector, N:"node object"):
     return networkf.sigmoid_prime(N.get_sum()) * sum(sum_w_delta)
 
 def delta_weight(node_sum: float , L_p_activation:list, dcost:float):
+    '''
+    calculates the DE/dw for the node
+    '''
     delta = []
     
     for i in range(len(L_p_activation)):
@@ -171,18 +209,23 @@ def delta_weight(node_sum: float , L_p_activation:list, dcost:float):
     return delta
 
 def delta_bias(node_sum: float, dcost: float):
+    '''
+    calculates the DE/db for the node
+    '''
     return networkf.sigmoid_prime(node_sum) * dcost
 
 
-    
 def change_in_cost(run:int, O:list):
+    '''
+    calculates the DE/da of the last layer (output layer)
+    '''
     expected = []
     delta = []
     for l in range(len(O)):
         expected.append(0)
 
     actual = get_data(run)[1]
-    expected[actual-1] = 1
+    expected[actual] = 1
 
     for expect_i in range(len(expected)):
         delta.append(networkf.cost_prime(O[expect_i], expected[expect_i]))
@@ -191,6 +234,9 @@ def change_in_cost(run:int, O:list):
     
 
 def get_data(run: int):
+    '''
+    gets the MNIST database images 
+    '''
     pixels, expected= TESTING_SET[run]
     pixels = convert_grey(pixels)
     Input = vector(pixels)
@@ -210,6 +256,9 @@ def layer_prop(A: vector,L: layer):
 
 
 def network_guess(O: [], possible: []):
+    '''
+    calculates the neural networks guess of the given image 
+    '''
     if len(O) != len(possible):
         raise ValueError("Output and possible results are different length")
     guess = 0
@@ -219,20 +268,13 @@ def network_guess(O: [], possible: []):
     return possible[guess]
 
 def convert_grey(pixels: [] or ()):
+    '''
+    converts image pixel data into 
+    values from 0 to 1
+    1 = 255
+    0 = 0 
+    '''
     return [i for i in map(lambda x: x/255, [p for p in pixels])]
-
-
-
-
-
-
-
-    
-
-
-
-
-
 
 
 if __name__ == "__main__":

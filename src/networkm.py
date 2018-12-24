@@ -17,6 +17,9 @@ DATA_TYPES = {
     }
 
 def label_data():
+    '''
+    loads label data from MNIST file
+    '''
 
     print("Training set labels")
     f = open("../data/train-labels.idx1-ubyte",'rb')
@@ -40,7 +43,7 @@ def label_data():
 
 def image_data():
     '''
-    reads data from the MNIST data set 
+    reads image data from the MNIST data set 
     '''
 
     print("Training set images")
@@ -78,13 +81,19 @@ def data_set():
     return [i for i in zip(images, labels)]
 
 def save_image(pixels:list):
-
+    '''
+    saves the image given a list of pixels 
+    '''
     image = Image.new('L', (28,28))
     image.putdata(pixels)
     image.save("test.png")
 
 
 def save_data(L: list, name: str):
+    '''
+    saves the weights and bias values of a given list of layers objects
+    into a .txt file
+    '''
     save_f = open("../data/{}".format(name) + ".txt", 'w')
     for l_index in range(len(L)):
         save_f.write("L{},{}\n".format(L[l_index].t, len(L[l_index])))
@@ -98,6 +107,10 @@ def save_data(L: list, name: str):
 
 
 def load_data(name: str) -> []:
+    '''
+    reads a saved .txt file containing weights and biases 
+    and translates into a list of layer objects
+    '''
     L = []
     save_f = Path("../data/"+name+".txt")
 
