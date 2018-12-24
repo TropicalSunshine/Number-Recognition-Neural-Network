@@ -28,6 +28,8 @@ def main():
     # Output layer   - contains 10 nodes and 16 weights per node
     # largest interval of the output layer's activations corresponds to the network's guess of what that number is
 
+
+    #-----------------------change here----------------------------
     Input = get_data(run_count)[0]
     hidden_1 = layer(16, "h") 
     hidden_1.init_weights(len(Input))
@@ -39,12 +41,14 @@ def main():
     output.init_weights(len(hidden_2))
 
     layers = [hidden_1, hidden_2, output]
+    #--------------------------------------------------------------
+
 
     #checks for saved weights and bias file
     if Path("../data/weights.txt").exists():
         layers = networkm.load_data("weights")
 
-    mode = input('b/f')
+    mode = input('b/f ')
     if mode == "b":
         back_propagation(layers)
     if mode == "f":
@@ -70,9 +74,12 @@ def forward_propagation(L: list, run_count: int, r=False):
     while run or run_count != len(TESTING_SET):
         Input = get_data(run_count)[0] # layer with the 768 pixel values
 
+
+        #---------------change here---------------------------
         hidden_1_activation = layer_prop(Input, L[0])
         hidden_2_activation = layer_prop(hidden_1_activation, L[1])
         outputs = layer_prop(hidden_2_activation, L[2]).get_vector()
+        #-----------------------------------------------------
 
         #calculates the guess of the network 
         guess = network_guess(outputs, [0,1,2,3,4,5,6,7,8,9])
@@ -81,12 +88,15 @@ def forward_propagation(L: list, run_count: int, r=False):
         if guess == actual:
             correct += 1
         
+        
         print("Guess: {}   Actual: {}\n".format(guess, actual))
 
-
+        #returns the final outputs
+        #returns list of layers
         if r == True:
             return L, outputs
-        print(outputs)
+        display(run_count)
+
         start = input("Continue? ")
 
         if start == "n":
@@ -114,8 +124,7 @@ def back_propagation(L: "list of layers"):
     learning_rate = int(input("learning rate: "))
 
     correct = 0
-
-
+    
     while run != 10000 : #sets the place in the data set to stop training
         L, outputs = forward_propagation(L, run, True)
 
@@ -169,6 +178,13 @@ def back_propagation(L: "list of layers"):
         dcost_gradient = []
     print("Correct Rate: {}".format(correct/run))
     networkm.save_data(L, "weights")
+
+
+
+def display(run_count: int):
+    image, label = TESTING_SET[run_count]
+    networkm.display_image(image)
+    networkm.save_image(image)
 
 
 def change_node_w(delta: list, node: "node object", learning_rate=1):

@@ -1,10 +1,15 @@
 
 import gzip
 import struct
+import tkinter
+
 from pathlib    import Path    
-from PIL        import Image
+from PIL        import Image, ImageTk
+
+
 from layer      import layer
 from vector     import vector
+
 
 #globals
 DATA_TYPES = {
@@ -87,6 +92,25 @@ def save_image(pixels:list):
     image = Image.new('L', (28,28))
     image.putdata(pixels)
     image.save("test.png")
+
+
+def display_image(pixels:list):
+    img = Image.new('L', (28,28))
+    img.putdata(pixels)
+    img = img.resize((500,500))
+    
+    root = tkinter.Tk()
+    img = ImageTk.PhotoImage(img)
+    panel = tkinter.Label(root, image = img)
+    panel.pack(side = "bottom", fill = "both", expand = "yes")
+
+    def press(event):
+        root.destroy()
+
+    root.bind_all("<KeyPress>",press) 
+    root.mainloop()
+    
+
 
 
 def save_data(L: list, name: str):
