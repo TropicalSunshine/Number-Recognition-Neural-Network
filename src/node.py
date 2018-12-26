@@ -8,7 +8,7 @@ class node:
     def __init__(self,i, weights, bias = 1):
         self.inputs = vector(i)
         self.w = vector(weights)
-        self.b = 0
+        self.b = 1
 
     def take_inputs(self,i):
         if len(i) != len(self.w):

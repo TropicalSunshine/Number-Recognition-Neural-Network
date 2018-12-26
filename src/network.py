@@ -31,7 +31,7 @@ def main():
 
     #-----------------------change here----------------------------
     Input = get_data(run_count)[0]
-    hidden_1 = layer(16, "h") 
+    hidden_1 = layer(16, "h")
     hidden_1.init_weights(len(Input))
 
     hidden_2 = layer(16, "h") 
@@ -90,6 +90,8 @@ def forward_propagation(L: list, run_count: int, r=False):
         
         
         print("Guess: {}   Actual: {}\n".format(guess, actual))
+        totalE = total_error(outputs, run)
+        print("total error: {}".format(totalE))
 
         #returns the final outputs
         #returns list of layers
@@ -121,11 +123,11 @@ def back_propagation(L: "list of layers"):
     gradient = defaultdict(lambda: defaultdict(dict))
 
     #learning rate mutiplier 
-    learning_rate = int(input("learning rate: "))
+    learning_rate = float(input("learning rate: "))
 
     correct = 0
     
-    while run != 10000 : #sets the place in the data set to stop training
+    while run != 1000 : #sets the place in the data set to stop training
         L, outputs = forward_propagation(L, run, True)
 
         actual = get_data(run)[1]
@@ -136,7 +138,7 @@ def back_propagation(L: "list of layers"):
 
         print("Correct: {}".format(correct))
 
-        dcost_gradient = change_in_cost(run, outputs)
+        dcost_gradient = delta_cost_o(run, outputs)
         print("run: {}".format(run))
 
 
@@ -145,20 +147,20 @@ def back_propagation(L: "list of layers"):
             for node in L[layer_i]:
                 if L[layer_i].t == 'o': #last layer back propogation
                     dcost = dcost_gradient[nodec]
-                    dweight = delta_weight(node.get_sum(), L[layer_i - 1].activations.get_vector(), dcost)
+                    dweight = delta_weight(dcost, node.get_sum(), L[layer_i - 1].activations.get_vector() )
                     dbias   = delta_bias(node.get_sum(), dcost)
 
                 elif layer_i == 0: #first layer back propogation
-                    dcost = delta_cost(L[layer_i + 1], gradient["L"+ str(layer_i + 1)]["gradient"], node)
+                    dcost = delta_cost(L[layer_i + 1], gradient["L"+ str(layer_i + 1)]["gradient"], nodec)
                     dcost_gradient.append(dcost)
-                    dweight = delta_weight(node.get_sum(), get_data(run)[0], dcost)
-                    dbias   = delta_bias(node.get_sum(), dcost)
+                    dweight = delta_weight(dcost, node.get_sum(), get_data(run)[0])
+                    dbias   = delta_bias(dcost, node.get_sum())
 
                 else:               #hidden layers
-                    dcost = delta_cost(L[layer_i + 1], gradient["L"+ str(layer_i + 1)]["gradient"], node)
+                    dcost = delta_cost(L[layer_i + 1], gradient["L"+ str(layer_i + 1)]["gradient"], nodec)
                     dcost_gradient.append(dcost)
-                    dweight = delta_weight(node.get_sum(), L[layer_i - 1].activations.get_vector(), dcost)
-                    dbias   = delta_bias(node.get_sum(), dcost)
+                    dweight = delta_weight(dcost, node.get_sum(), L[layer_i - 1].activations.get_vector())
+                    dbias   = delta_bias(dcost, node.get_sum())
 
                 #record the gradient
                 #changes are recorded in the gradient for every change
@@ -202,36 +204,39 @@ def change_node_w(delta: list, node: "node object", learning_rate=1):
 
     node.set_weights(vector(r_weights))
 
-def delta_cost(L: "layer object", d_N_gradient: vector, N:"node object"):
+def delta_cost(L: "layer object", cost_gradient: vector, nodec: int):
     '''
     sigmoid_prime(z) * summation of W mutiplied by cost
     calculates the DE/da of the hidden layers
     '''
-    sum_w_delta = []
-    for node in range(len(L)):
-        sum_w_delta.append(sum(L[node].get_weights() * d_N_gradient[node]))
-        
-    
-    return networkf.sigmoid_prime(N.get_sum()) * sum(sum_w_delta)
+    L_dC_Dznet = []
 
-def delta_weight(node_sum: float , L_p_activation:list, dcost:float):
-    '''
-    calculates the DE/dw for the node
-    '''
-    delta = []
-    
-    for i in range(len(L_p_activation)):
-        delta.append(networkf.sigmoid_prime(node_sum) * L_p_activation[i] * dcost)
-    return delta
+    for node_i in range(len(L)):
+        dE_da = cost_gradient[node_i]
+        da_dznet = networkf.sigmoid_prime(L[node_i].get_sum())
+        dznet_da = L[node_i].get_weights()[nodec]
+        L_dC_Dznet.append(dE_da * da_dznet * dznet_da)
+    return sum(L_dC_Dznet)
 
-def delta_bias(node_sum: float, dcost: float):
+
+def delta_weight(dcost: float, znet: float, P_activation:list ):
+    dweight = []
+    da_dznet = networkf.sigmoid_prime(znet)
+    for i in range(len(P_activation)):
+        dznet_dw = P_activation[i]
+        dweight.append(dcost * da_dznet * dznet_dw)
+    return dweight
+
+
+
+def delta_bias(dcost:float, node_sum:float):
     '''
     calculates the DE/db for the node
     '''
     return networkf.sigmoid_prime(node_sum) * dcost
 
 
-def change_in_cost(run:int, O:list):
+def delta_cost_o(run:int, O:list):
     '''
     calculates the DE/da of the last layer (output layer)
     '''
@@ -259,7 +264,16 @@ def get_data(run: int):
     return (Input,expected)
 
 
+def total_error(O: list, run: int):
+    expected = []
+    for i in range(len(O)):
+        expected.append(0)
+    expected[get_data(run)[1]] = 1
 
+    cost = []
+    for i in range(len(O)):
+        cost.append(networkf.cost(O[i], expected[i]))
+    return sum(cost)
 
 def layer_prop(A: vector,L: layer):
     '''
