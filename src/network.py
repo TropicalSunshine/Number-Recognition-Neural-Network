@@ -96,7 +96,8 @@ def forward_propagation(L: list, run_count: int, r=False):
         #returns the final outputs
         #returns list of layers
         if r == True:
-            return L, outputs
+            return outputs
+        
         display(run_count)
 
         start = input("Continue? ")
@@ -128,7 +129,7 @@ def back_propagation(L: "list of layers"):
     correct = 0
     
     while run != 1000 : #sets the place in the data set to stop training
-        L, outputs = forward_propagation(L, run, True)
+        outputs = forward_propagation(L, run, True)
 
         actual = get_data(run)[1]
         guess = network_guess(outputs, [0,1,2,3,4,5,6,7,8,9])
@@ -146,7 +147,7 @@ def back_propagation(L: "list of layers"):
             nodec = 0 
             for node in L[layer_i]:
                 if L[layer_i].t == 'o': #last layer back propogation
-                    dcost = dcost_gradient[nodec]
+                    dcost = sum(dcost_gradient)
                     dweight = delta_weight(dcost, node.get_sum(), L[layer_i - 1].activations.get_vector() )
                     dbias   = delta_bias(node.get_sum(), dcost)
 
@@ -170,9 +171,12 @@ def back_propagation(L: "list of layers"):
 
 
                 #changes in node
-                node.set_bias(node.get_bias() - dbias)
-                change_node_w(dweight,node,learning_rate)
+                node_bias = node.get_bias()
+                node.set_bias(node_bias - dbias)
+                node.set_weights(change_node_w(dweight,node,learning_rate))
+
                 nodec += 1
+                
 
             gradient["L"+str(layer_i)]["gradient"] = vector(dcost_gradient)
         #print("ERROR:{}\n".format(gradient["L"+str(layer_i)]["gradient"].sum()))
@@ -202,7 +206,7 @@ def change_node_w(delta: list, node: "node object", learning_rate=1):
     for i in range(len(delta)):
         r_weights.append(weights[i] - (learning_rate*delta[i]))
 
-    node.set_weights(vector(r_weights))
+    return vector(r_weights)
 
 def delta_cost(L: "layer object", cost_gradient: vector, nodec: int):
     '''
