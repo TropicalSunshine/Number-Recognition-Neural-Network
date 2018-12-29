@@ -25,10 +25,10 @@ class vector(list):
                 result[index] *= right
             return result
         elif type(right) == vector and len(right.vector) == len(self.vector):
-            result = 0
+            result = []
             for index in range(len(self.vector)):
-                result += (right.vector[index] * self.vector[index])
-            return result
+                result.append(right.vector[index] * self.vector[index])
+            return sum(result)
         else:
             raise TypeError("Mutiplication Error")
 

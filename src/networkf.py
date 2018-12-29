@@ -21,8 +21,6 @@ class Memoize:
 @Memoize
 def sigmoid(x):
     "the sigmoid function"
-    if x < (-700):
-        return 0
     return 1.0/(1.0+(E**(-x)))
 
 @Memoize
@@ -32,10 +30,10 @@ def sigmoid_prime(x):
     return sigmoid(x)*(1 - sigmoid(x))
 
 @Memoize
-def cost(actual, expected):
-    return (0.5)*(actual - expected)**2
+def cost(out, target):
+    return (0.5)*((target - out)**2)
 
 @Memoize
-def cost_prime(actual, expected):
-    return (actual - expected)
+def cost_prime(out, target):
+    return -(target - out)
 

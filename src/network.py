@@ -92,7 +92,7 @@ def forward_propagation(L: list, run_count: int, r=False):
         print("Guess: {}   Actual: {}\n".format(guess, actual))
         totalE = total_error(outputs, run)
         print("total error: {}".format(totalE))
-
+        
         #returns the final outputs
         #returns list of layers
         if r == True:
@@ -111,7 +111,7 @@ def forward_propagation(L: list, run_count: int, r=False):
 def back_propagation(L: "list of layers"):
     '''
     Using gradient descent methods 
-    back propagation is asssited throught find the change in weights of a single node 
+    back propagation is asssited through find the change in weights of a single node 
     and the change in bias of that node 
     calculated through the chain rule 
     back propagation begins with the last layer
@@ -128,17 +128,16 @@ def back_propagation(L: "list of layers"):
 
     correct = 0
     
-    while run != 1000 : #sets the place in the data set to stop training
+    while run != 1 : #sets the place in the data set to stop training
         outputs = forward_propagation(L, run, True)
-
         actual = get_data(run)[1]
+
         guess = network_guess(outputs, [0,1,2,3,4,5,6,7,8,9])
 
         if actual == guess:
             correct += 1
 
         print("Correct: {}".format(correct))
-
         dcost_gradient = delta_cost_o(run, outputs)
         print("run: {}".format(run))
 
@@ -146,10 +145,11 @@ def back_propagation(L: "list of layers"):
         for layer_i in range(len(L) - 1, -1, -1):
             nodec = 0 
             for node in L[layer_i]:
-                if L[layer_i].t == 'o': #last layer back propogation
-                    dcost = sum(dcost_gradient)
+                if L[layer_i].t == 'o': #output layer back propogation
+                    dcost = dcost_gradient[nodec]
                     dweight = delta_weight(dcost, node.get_sum(), L[layer_i - 1].activations.get_vector() )
                     dbias   = delta_bias(node.get_sum(), dcost)
+                    #print("outputs: {}\n weights:{} \n dcost: {}\n dweight:{}\n dbias: {}\n p_activations: {}\n bias:{}\n z:{}\n".format(outputs, node.get_weights(), dcost, dweight, dbias, L[layer_i - 1].activations.get_vector(), node.get_bias(), node.get_sum()))
 
                 elif layer_i == 0: #first layer back propogation
                     dcost = delta_cost(L[layer_i + 1], gradient["L"+ str(layer_i + 1)]["gradient"], nodec)
@@ -163,9 +163,9 @@ def back_propagation(L: "list of layers"):
                     dweight = delta_weight(dcost, node.get_sum(), L[layer_i - 1].activations.get_vector())
                     dbias   = delta_bias(dcost, node.get_sum())
 
+                print(dweight)
                 #record the gradient
                 #changes are recorded in the gradient for every change
-                gradient["L"+str(layer_i)][nodec]["dcost"] = dcost
                 gradient["L"+str(layer_i)][nodec]["dweights"] = dweight
                 gradient["L"+str(layer_i)][nodec]["dbias"] = dbias
 
@@ -177,11 +177,11 @@ def back_propagation(L: "list of layers"):
 
                 nodec += 1
                 
-
             gradient["L"+str(layer_i)]["gradient"] = vector(dcost_gradient)
-        #print("ERROR:{}\n".format(gradient["L"+str(layer_i)]["gradient"].sum()))
+            dcost_gradient = []
+
         run += 1
-        dcost_gradient = []
+
     print("Correct Rate: {}".format(correct/run))
     networkm.save_data(L, "weights")
 
@@ -213,14 +213,18 @@ def delta_cost(L: "layer object", cost_gradient: vector, nodec: int):
     sigmoid_prime(z) * summation of W mutiplied by cost
     calculates the DE/da of the hidden layers
     '''
-    L_dC_Dznet = []
+
+    if len(L) != len(cost_gradient):
+        raise AttributeError
+
+    L_dC_Da = []
 
     for node_i in range(len(L)):
-        dE_da = cost_gradient[node_i]
+        DE_da = cost_gradient[node_i]
         da_dznet = networkf.sigmoid_prime(L[node_i].get_sum())
         dznet_da = L[node_i].get_weights()[nodec]
-        L_dC_Dznet.append(dE_da * da_dznet * dznet_da)
-    return sum(L_dC_Dznet)
+        L_dC_Da.append(DE_da * da_dznet * dznet_da)
+    return sum(L_dC_Da)
 
 
 def delta_weight(dcost: float, znet: float, P_activation:list ):
