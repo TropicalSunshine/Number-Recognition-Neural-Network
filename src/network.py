@@ -90,8 +90,7 @@ def forward_propagation(L: list, run_count: int, r=False):
         
         
         print("Guess: {}   Actual: {}\n".format(guess, actual))
-        totalE = total_error(outputs, run)
-        print("total error: {}".format(totalE))
+        
         
         #returns the final outputs
         #returns list of layers
@@ -128,7 +127,7 @@ def back_propagation(L: "list of layers"):
 
     correct = 0
     
-    while run != 1 : #sets the place in the data set to stop training
+    while run != 1000 : #sets the place in the data set to stop training
         outputs = forward_propagation(L, run, True)
         actual = get_data(run)[1]
 
@@ -140,6 +139,8 @@ def back_propagation(L: "list of layers"):
         print("Correct: {}".format(correct))
         dcost_gradient = delta_cost_o(run, outputs)
         print("run: {}".format(run))
+        totalE = total_error(outputs, run)
+        print("total error: {}".format(totalE))
 
 
         for layer_i in range(len(L) - 1, -1, -1):
@@ -148,7 +149,7 @@ def back_propagation(L: "list of layers"):
                 if L[layer_i].t == 'o': #output layer back propogation
                     dcost = dcost_gradient[nodec]
                     dweight = delta_weight(dcost, node.get_sum(), L[layer_i - 1].activations.get_vector() )
-                    dbias   = delta_bias(node.get_sum(), dcost)
+                    dbias   = delta_bias(dcost, node.get_sum())
                     #print("outputs: {}\n weights:{} \n dcost: {}\n dweight:{}\n dbias: {}\n p_activations: {}\n bias:{}\n z:{}\n".format(outputs, node.get_weights(), dcost, dweight, dbias, L[layer_i - 1].activations.get_vector(), node.get_bias(), node.get_sum()))
 
                 elif layer_i == 0: #first layer back propogation
@@ -163,7 +164,6 @@ def back_propagation(L: "list of layers"):
                     dweight = delta_weight(dcost, node.get_sum(), L[layer_i - 1].activations.get_vector())
                     dbias   = delta_bias(dcost, node.get_sum())
 
-                print(dweight)
                 #record the gradient
                 #changes are recorded in the gradient for every change
                 gradient["L"+str(layer_i)][nodec]["dweights"] = dweight
@@ -190,7 +190,6 @@ def back_propagation(L: "list of layers"):
 def display(run_count: int):
     image, label = TESTING_SET[run_count]
     networkm.display_image(image)
-    networkm.save_image(image)
 
 
 def change_node_w(delta: list, node: "node object", learning_rate=1):
