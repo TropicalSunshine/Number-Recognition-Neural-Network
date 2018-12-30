@@ -48,7 +48,11 @@ def main():
     if Path("../data/weights.txt").exists():
         layers = networkm.load_data("weights")
 
-    mode = input('b/f ')
+    print("f) forward prop")
+    print("b) backward prop")
+    print("s) sketch")
+    mode = input()
+
     if mode == "b":
         back_propagation(layers)
     if mode == "f":
@@ -118,7 +122,9 @@ def back_propagation(L: "list of layers"):
     '''
 
     # interval for place in data to begin training
+    totalError = 0.0
     run = 0
+    begin = run 
 
     gradient = defaultdict(lambda: defaultdict(dict))
 
@@ -127,7 +133,7 @@ def back_propagation(L: "list of layers"):
 
     correct = 0
     
-    while run != 1000 : #sets the place in the data set to stop training
+    while run !=  1000: #sets the place in the data set to stop training
         outputs = forward_propagation(L, run, True)
         actual = get_data(run)[1]
 
@@ -139,8 +145,11 @@ def back_propagation(L: "list of layers"):
         print("Correct: {}".format(correct))
         dcost_gradient = delta_cost_o(run, outputs)
         print("run: {}".format(run))
-        totalE = total_error(outputs, run)
-        print("total error: {}".format(totalE))
+        error = total_error(outputs, run)
+        print("error: {}".format(error))
+
+        #summing up the errors for later calculation of total error 
+        totalError += error
 
 
         for layer_i in range(len(L) - 1, -1, -1):
@@ -182,7 +191,8 @@ def back_propagation(L: "list of layers"):
 
         run += 1
 
-    print("Correct Rate: {}".format(correct/run))
+    print("Correct Rate: {}".format(correct/(run - begin)))
+    print("total Error: {}".format(totalError/(run - begin)))
     networkm.save_data(L, "weights")
 
 
