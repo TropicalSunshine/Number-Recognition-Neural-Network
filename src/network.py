@@ -133,7 +133,7 @@ def back_propagation(L: "list of layers"):
 
     correct = 0
     
-    while run !=  1000: #sets the place in the data set to stop training
+    while run !=  100: #sets the place in the data set to stop training
         outputs = forward_propagation(L, run, True)
         actual = get_data(run)[1]
 
